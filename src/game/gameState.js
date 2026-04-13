@@ -149,7 +149,8 @@ export function dealInitialHands(deck) {
 }
 
 export function checkWin(hand) {
-  if (hand.length !== 17) return false;
+  // Length dynamically validates exposed melds (17, 14, 11, etc)
+  if (hand.length % 3 !== 2) return false;
 
   let counts = {};
   for (let tile of hand) {
@@ -208,4 +209,59 @@ function checkRemainingMelds(counts) {
   }
 
   return false;
+}
+
+export function getAvailableInteractions(hand, discardedTile, isLeftPlayer) {
+    const actions = [];
+    let counts = {};
+    for (let t of hand) counts[t] = (counts[t] || 0) + 1;
+    
+    // Check Pon (Triplet)
+    if (counts[discardedTile] >= 2) {
+        actions.push('pon');
+    }
+    
+    // Check Chow (Sequence)
+    let match = discardedTile.match(/^([A-Za-z]+)(\d)$/);
+    if (isLeftPlayer && match && ['Man', 'Pin', 'Sou'].includes(match[1])) {
+        let suit = match[1];
+        let num = parseInt(match[2], 10);
+        let hasChow = false;
+        if (num >= 3 && counts[`${suit}${num-2}`] && counts[`${suit}${num-1}`]) hasChow = true;
+        if (num >= 2 && num <= 8 && counts[`${suit}${num-1}`] && counts[`${suit}${num+1}`]) hasChow = true;
+        if (num <= 7 && counts[`${suit}${num+1}`] && counts[`${suit}${num+2}`]) hasChow = true;
+        
+        if (hasChow) {
+            actions.push('chow');
+        }
+    }
+    
+    // Check Hu (Win) natively factoring in the simulated addition of the newly discarded tile to the internal array
+    if (checkWin([...hand, discardedTile])) {
+        actions.push('hu');
+    }
+    
+    return actions;
+}
+
+export function autoResolveChow(hand, discardedTile) {
+    let match = discardedTile.match(/^([A-Za-z]+)(\d)$/);
+    if (!match) return null;
+    let suit = match[1];
+    let num = parseInt(match[2], 10);
+    
+    let counts = {};
+    for (let t of hand) counts[t] = (counts[t] || 0) + 1;
+
+    // Pick first mathematically viable sequence
+    if (counts[`${suit}${num-2}`] && counts[`${suit}${num-1}`]) {
+        return [`${suit}${num-2}`, `${suit}${num-1}`, discardedTile];
+    }
+    if (counts[`${suit}${num-1}`] && counts[`${suit}${num+1}`]) {
+        return [`${suit}${num-1}`, discardedTile, `${suit}${num+1}`];
+    }
+    if (counts[`${suit}${num+1}`] && counts[`${suit}${num+2}`]) {
+        return [discardedTile, `${suit}${num+1}`, `${suit}${num+2}`];
+    }
+    return null;
 }
