@@ -221,6 +221,11 @@ export function getAvailableInteractions(hand, discardedTile, isLeftPlayer) {
         actions.push('pon');
     }
     
+    // Check Kong (Four of a kind)
+    if (counts[discardedTile] === 3) {
+        actions.push('kong');
+    }
+    
     // Check Chow (Sequence)
     let match = discardedTile.match(/^([A-Za-z]+)(\d)$/);
     if (isLeftPlayer && match && ['Man', 'Pin', 'Sou'].includes(match[1])) {

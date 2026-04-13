@@ -203,6 +203,57 @@ function App() {
           setPendingInteraction(null);
           setCurrentTurn(0); // Jump turn queue permanently!
           
+      } else if (action === 'kong') {
+          let newHand = [...playerHand];
+          let extracted = [];
+          for (let i = newHand.length - 1; i >= 0; i--) {
+              if (newHand[i] === targetTile && extracted.length < 3) {
+                  extracted.push(newHand.splice(i, 1)[0]);
+              }
+          }
+          extracted.push(targetTile);
+          
+          let newDiscard = [...discardPile];
+          newDiscard.pop(); // Take from active discard
+          
+          setDiscardPile(newDiscard);
+          setPlayerExposed(prev => [...prev, extracted]);
+          
+          // MANDATORY KONG REPLACEMENT DRAW FROM EXTRA WALL
+          let freshDeck = [...remainingDeck];
+          let freshPlayerFlowers = [...playerFlowers];
+          
+          if (freshDeck.length === 0) {
+              setGamePhase('draw');
+              setRemainingDeck(freshDeck);
+              setPendingInteraction(null);
+              return;
+          }
+          
+          let drawnTile = null;
+          let hasFlower = true;
+          while (hasFlower && freshDeck.length > 0) {
+             let draw = freshDeck.pop();
+             if (draw.startsWith('Flower') || draw.startsWith('Season')) {
+                freshPlayerFlowers.push(draw);
+             } else {
+                drawnTile = draw;
+                hasFlower = false;
+             }
+          }
+          
+          if (drawnTile) newHand.push(drawnTile);
+          
+          setPlayerHand(sortHand(newHand));
+          setPlayerFlowers(freshPlayerFlowers);
+          setRemainingDeck(freshDeck);
+          setPendingInteraction(null);
+          setCurrentTurn(0);
+          
+          if (checkWin(newHand)) {
+              setGamePhase('win');
+          }
+          
       } else if (action === 'chow') {
           let seq = autoResolveChow(playerHand, targetTile);
           if (seq) {
@@ -337,6 +388,10 @@ function App() {
                        <button onClick={() => handleInteractionResponse('pon')} className="px-8 py-2 bg-gradient-to-r from-orange-700 to-orange-500 hover:from-orange-600 hover:to-orange-400 border border-orange-300 shadow-[0_0_25px_rgba(249,115,22,0.6)] rounded-full text-white font-black text-lg transition-all transform hover:scale-110 active:scale-95">PON!</button>
                     )}
                     
+                    {pendingInteraction.actions.includes('kong') && (
+                       <button onClick={() => handleInteractionResponse('kong')} className="px-8 py-2 bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-600 hover:to-purple-400 border border-purple-300 shadow-[0_0_25px_rgba(168,85,247,0.6)] rounded-full text-white font-black text-lg transition-all transform hover:scale-110 active:scale-95">KONG!</button>
+                    )}
+                    
                     {pendingInteraction.actions.includes('hu') && (
                        <button onClick={() => handleInteractionResponse('hu')} className="px-10 py-2 bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 border-2 border-yellow-300 shadow-[0_0_40px_rgba(220,38,38,1)] rounded-full text-yellow-200 font-black text-xl transition-all transform hover:scale-110 animate-pulse">WIN!</button>
                     )}
@@ -421,9 +476,9 @@ function App() {
              
              {/* Exposed Melds Section */}
              {playerExposed.length > 0 && playerExposed.map((meld, mIdx) => (
-                <div key={`exp-${mIdx}`} className="flex gap-[1px] bg-black/20 rounded shadow-inner p-1 sm:p-2 border-b-2 border-yellow-500/80 transform hover:scale-105 transition-transform cursor-default">
+                <div key={`exp-${mIdx}`} className="flex gap-[1px] bg-black/20 rounded shadow-inner p-1 sm:p-2 border-b-2 border-yellow-500/80 transform hover:scale-105 transition-transform cursor-default relative">
                    {meld.map((t, i) => (
-                      <div key={`et-${mIdx}-${i}`} className="opacity-95">
+                      <div key={`et-${mIdx}-${i}`} className={`opacity-95 ${meld.length === 4 && i === 3 ? 'absolute top-1/2 left-1/2 transform -translate-x-1/2 sm:-translate-y-[8px] -translate-y-1 shadow-[0_5px_15px_rgba(0,0,0,0.8)] outline outline-1 outline-yellow-400/50 rounded z-10 scale-[1.05]' : ''}`}>
                           <Tile tileName={t} />
                       </div>
                    ))}
