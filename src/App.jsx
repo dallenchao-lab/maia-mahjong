@@ -492,13 +492,13 @@ function App() {
       {/* 1. TABLE CENTER */}
       <div className={isMobile ? "flex-1 relative z-0 flex flex-col min-h-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]" : "col-start-1 row-start-1 md:col-start-1 md:col-span-2 md:row-start-1 relative z-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)] flex flex-col min-h-0"}>
          
-         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-            <button onClick={startNewGame} className="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-800 border border-green-600 rounded text-xs sm:text-base shadow-sm hover:bg-green-700 transition w-max">Redeal</button>
+         <div className={`absolute top-4 left-4 z-10 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-base font-mono bg-black/40 rounded border border-white/20 text-white/90 shadow-xl transition-colors duration-500 flex gap-2 items-center tracking-wider ${currentTurn === 0 ? 'border-emerald-500 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.3)] backdrop-blur-sm' : 'border-white/10 backdrop-blur-sm'}`}>
+            <span className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${currentTurn === 0 ? 'bg-emerald-400 animate-pulse outline outline-emerald-400/50 outline-2 outline-offset-1' : 'bg-white/20'}`}></span>
+            Remaining: {remainingDeck.length}
          </div>
          
-         <div className={`absolute bottom-4 sm:bottom-6 left-4 sm:left-6 z-10 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-lg font-mono bg-black/40 rounded-lg border-2 text-white/90 shadow-xl transition-colors duration-500 flex gap-3 items-center tracking-wider ${currentTurn === 0 ? 'border-emerald-500 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.3)] backdrop-blur-sm' : 'border-white/10 backdrop-blur-sm'}`}>
-            <span className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full ${currentTurn === 0 ? 'bg-emerald-400 animate-pulse outline outline-emerald-400/50 outline-2 outline-offset-1' : 'bg-white/20'}`}></span>
-            Remaining: {remainingDeck.length}
+         <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+            <button onClick={startNewGame} className="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-800 border border-green-600 rounded text-xs sm:text-base shadow-sm hover:bg-green-700 transition w-max">Redeal</button>
          </div>
          
          {/* Center Felt - Discards */}
