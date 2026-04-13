@@ -21,7 +21,7 @@ const Tile = ({ tileName, onClick, selected }) => {
     <div 
       onClick={() => onClick && onClick(tileName)}
       className={`
-        relative w-12 h-16 sm:w-16 sm:h-24 m-1 cursor-pointer select-none
+        relative w-8 h-12 sm:w-10 sm:h-14 md:w-12 md:h-16 lg:w-16 lg:h-24 m-0.5 sm:m-1 lg:m-1.5 cursor-pointer select-none
         transition-all duration-200 transform
         ${selected ? '-translate-y-4 shadow-2xl scale-110 drop-shadow-[0_10px_10px_rgba(0,100,0,0.5)]' : 'shadow-md hover:-translate-y-2 hover:shadow-xl'}
       `}
@@ -44,7 +44,7 @@ const Tile = ({ tileName, onClick, selected }) => {
           </div>
         ) : (
           <img 
-            src={`/tiles/${tileName}.svg`} 
+            src={`/tiles/${tileName}.svg?v=2`} 
             alt={tileName}
             className="w-full h-full object-contain p-1 border border-gray-100 rounded"
             draggable={false}

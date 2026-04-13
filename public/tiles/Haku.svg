@@ -152,13 +152,13 @@
   </defs>
   <sodipodi:namedview
      id="base"
-     pagecolor="#000000"
+     pagecolor="#aeffff"
      bordercolor="#666666"
      borderopacity="1"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4297189"
-     inkscape:cx="-90.311852"
+     inkscape:cx="28.942359"
      inkscape:cy="260.89845"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -202,7 +202,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>

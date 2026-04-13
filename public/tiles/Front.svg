@@ -17,7 +17,7 @@
    version="1.1"
    inkscape:version="0.91 r13725"
    sodipodi:docname="Front.svg"
-   inkscape:export-filename="C:\Users\Fluffy\Documents\Projects\ExtraRiichi\Tiles\Export\Black\Front.png"
+   inkscape:export-filename="C:\Users\Fluffy\Documents\Projects\ExtraRiichi\Tiles\Export\Regular\Front.png"
    inkscape:export-xdpi="180"
    inkscape:export-ydpi="180">
   <defs
@@ -252,15 +252,15 @@
      borderopacity="1"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.0109639"
-     inkscape:cx="148.04487"
-     inkscape:cy="250.63846"
+     inkscape:zoom="0.50548195"
+     inkscape:cx="314.366"
+     inkscape:cy="374.8318"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:window-width="1920"
      inkscape:window-height="1017"
-     inkscape:window-x="1912"
+     inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      showguides="true"
@@ -297,7 +297,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -307,7 +307,7 @@
      id="layer1"
      transform="translate(0,-652.36216)">
     <rect
-       style="opacity:1;fill:#1e1e1e;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:10;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       style="opacity:1;fill:#f5f0eb;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:10;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect4164"
        width="300.05896"
        height="400.77808"
@@ -316,7 +316,7 @@
        ry="40" />
     <path
        transform="translate(-1.3432789e-7,-1.3368765e-6)"
-       style="fill:#ffffff;fill-opacity:0.15686275;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;filter:url(#filter4198-8)"
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;filter:url(#filter4198-8)"
        d="M -4.7687833,775.07096 C -9.6501835,741.99485 -16.84552,674.23676 -1.2788716,652.0641 18.998297,625.94378 233.50094,631.63117 263.31435,653.90999 276.21398,662.64856 70.349579,663.12124 47.099353,691.74479 24.390958,719.11242 0.65060847,818.18718 -4.7687833,775.07096 Z"
        id="path4166"
        inkscape:connector-curvature="0"
@@ -327,7 +327,7 @@
        inkscape:connector-curvature="0"
        id="path4221"
        d="m 151.73588,1025.0177 c -3.32683,-9.3138 -10.24843,-68.45389 5.31821,-90.62655 20.27717,-26.12032 219.43558,-16.45796 231.55506,-9.93184 11.07433,5.31702 -178.60366,0.0589 -204.85126,34.86646 -21.59349,30.0006 -26.50086,82.17843 -32.02201,65.69193 z"
-       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;filter:url(#filter4198-8)"
+       style="fill:#000000;fill-opacity:0.19607843;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;filter:url(#filter4198-8)"
        transform="matrix(-1,0,0,-1,451.93806,1977.887)"
        mask="url(#mask4216-0)" />
   </g>
