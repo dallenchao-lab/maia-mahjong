@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { generateDeck, dealInitialHands, sortHand, checkWin, getAvailableInteractions, autoResolveChow } from './game/gameState'
+import { generateDeck, dealInitialHands, sortHand, checkWin, getAvailableInteractions, autoResolveChow, getAvailableSelfKongs } from './game/gameState'
 import { askMockCoach } from './ai/mockAiService'
 import Tile from './components/Tile'
 import { Sparkles, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
@@ -286,6 +286,64 @@ function App() {
       }
   }
 
+  const handleSelfKong = (kongObj) => {
+      let newHand = [...playerHand];
+      let newExposed = [...playerExposed];
+      
+      if (kongObj.type === 'concealed') {
+          let extracted = [];
+          for (let i = newHand.length - 1; i >= 0; i--) {
+              if (newHand[i] === kongObj.tile && extracted.length < 4) {
+                  extracted.push(newHand.splice(i, 1)[0]);
+              }
+          }
+          newExposed.push(extracted);
+      } else if (kongObj.type === 'promoted') {
+          let idx = newHand.indexOf(kongObj.tile);
+          if (idx > -1) newHand.splice(idx, 1);
+          
+          for (let i = 0; i < newExposed.length; i++) {
+              if (newExposed[i].length === 3 && newExposed[i][0] === kongObj.tile && newExposed[i][1] === kongObj.tile) {
+                  newExposed[i] = [...newExposed[i], kongObj.tile];
+                  break;
+              }
+          }
+      }
+      
+      setPlayerExposed(newExposed);
+      
+      let freshDeck = [...remainingDeck];
+      let freshPlayerFlowers = [...playerFlowers];
+      
+      if (freshDeck.length === 0) {
+          setGamePhase('draw');
+          setRemainingDeck(freshDeck);
+          return;
+      }
+      
+      let drawnTile = null;
+      let hasFlower = true;
+      while (hasFlower && freshDeck.length > 0) {
+         let draw = freshDeck.pop();
+         if (draw.startsWith('Flower') || draw.startsWith('Season')) {
+            freshPlayerFlowers.push(draw);
+         } else {
+            drawnTile = draw;
+            hasFlower = false;
+         }
+      }
+      
+      if (drawnTile) newHand.push(drawnTile);
+      
+      setPlayerHand(sortHand(newHand));
+      setPlayerFlowers(freshPlayerFlowers);
+      setRemainingDeck(freshDeck);
+      
+      if (checkWin(newHand)) {
+          setGamePhase('win');
+      }
+  }
+
   const handleTileClick = (tileName) => {
     setSelectedTile(selectedTile === tileName ? null : tileName);
   }
@@ -328,6 +386,8 @@ function App() {
   // Native draws give +1. Pon/Chow gives 0 (requires discard). Both resolve out to (17 - Exposed*3) bounds
   const targetHandLength = 17 - (playerExposed.length * 3);
   const isNewlyDrawn = (idx) => idx === playerHand.length - 1 && playerHand.length === targetHandLength;
+
+  const selfKongs = (currentTurn === 0 && gamePhase === 'playing' && !pendingInteraction) ? getAvailableSelfKongs(playerHand, playerExposed) : [];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 grid-rows-[1fr_auto_auto] md:grid-rows-[1fr_auto] h-screen w-screen overflow-hidden bg-felt text-white relative">
@@ -439,15 +499,29 @@ function App() {
                </div>
             )}
             
-            {/* User Action: Discard Overlay */}
-            {selectedTile && currentTurn === 0 && gamePhase === 'playing' && !pendingInteraction && (
-               <div className="absolute bottom-4 sm:bottom-6 right-4 sm:right-6 z-50 animate-in slide-in-from-bottom-2 fade-in">
-                 <button 
-                   onClick={() => handleDiscard(selectedTile)}
-                   className="px-6 sm:px-10 py-2 sm:py-3 border-2 border-red-500 bg-red-600 hover:bg-red-500 text-white font-bold rounded-full shadow-[0_10px_20px_rgba(220,38,38,0.4)] transition-transform transform hover:scale-105 active:scale-95 text-sm sm:text-lg whitespace-nowrap"
-                 >
-                   Discard Selection
-                 </button>
+            {/* User Action Overlay */}
+            {currentTurn === 0 && gamePhase === 'playing' && !pendingInteraction && (
+               <div className="absolute bottom-4 sm:bottom-6 right-4 sm:right-6 z-50 flex items-center gap-4 animate-in slide-in-from-bottom-2 fade-in">
+                 
+                 {/* Self Kong Injection UI */}
+                 {selfKongs.length > 0 && (
+                     <button 
+                       onClick={() => handleSelfKong(selfKongs[0])}
+                       className="px-6 sm:px-8 py-2 sm:py-3 border-2 border-purple-500 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-full shadow-[0_5px_15px_rgba(168,85,247,0.5)] transition-transform transform hover:scale-105 active:scale-95 text-sm sm:text-lg whitespace-nowrap animate-pulse"
+                     >
+                       Declare Kong
+                     </button>
+                 )}
+                 
+                 {/* Native Discard Selection */}
+                 {selectedTile && (
+                     <button 
+                       onClick={() => handleDiscard(selectedTile)}
+                       className="px-6 sm:px-10 py-2 sm:py-3 border-2 border-red-500 bg-red-600 hover:bg-red-500 text-white font-bold rounded-full shadow-[0_10px_20px_rgba(220,38,38,0.4)] transition-transform transform hover:scale-105 active:scale-95 text-sm sm:text-lg whitespace-nowrap"
+                     >
+                       Discard Selection
+                     </button>
+                 )}
                </div>
             )}
          </div>

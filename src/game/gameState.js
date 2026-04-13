@@ -270,3 +270,26 @@ export function autoResolveChow(hand, discardedTile) {
     }
     return null;
 }
+
+export function getAvailableSelfKongs(hand, exposed) {
+    let kongs = [];
+    
+    // Check Concealed Kongs
+    let counts = {};
+    for (let t of hand) counts[t] = (counts[t] || 0) + 1;
+    for (let t in counts) {
+        if (counts[t] === 4) kongs.push({ type: 'concealed', tile: t });
+    }
+    
+    // Check Promoted Kongs
+    for (let meld of exposed) {
+        if (meld.length === 3) {
+            if (meld[0] === meld[1] && meld[1] === meld[2]) {
+                let t = meld[0];
+                if (counts[t] >= 1) kongs.push({ type: 'promoted', tile: t });
+            }
+        }
+    }
+    
+    return kongs;
+}
