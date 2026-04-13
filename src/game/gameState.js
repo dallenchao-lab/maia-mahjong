@@ -8,6 +8,40 @@ const WINDS = ['Ton', 'Nan', 'Shaa', 'Pei']; // East, South, West, North
 const DRAGONS = ['Haku', 'Hatsu', 'Chun']; // White, Green, Red
 const FLOWERS = ['Flower1', 'Flower2', 'Flower3', 'Flower4', 'Season1', 'Season2', 'Season3', 'Season4'];
 
+// Base numerical weights for sorting Mahjong tiles standardly
+const SORT_ORDER = {
+  Man: 100,
+  Pin: 200,
+  Sou: 300,
+  Ton: 410,
+  Nan: 420,
+  Shaa: 430,
+  Pei: 440,
+  Haku: 510,
+  Hatsu: 520,
+  Chun: 530,
+  Flower: 600,
+  Season: 700,
+  Blank: 800
+};
+
+export function getTileSortValue(tile) {
+  for (const [key, baseValue] of Object.entries(SORT_ORDER)) {
+    if (tile.startsWith(key)) {
+      const match = tile.match(/\d+/);
+      if (match) {
+        return baseValue + parseInt(match[0], 10);
+      }
+      return baseValue;
+    }
+  }
+  return 999;
+}
+
+export function sortHand(hand) {
+  return [...hand].sort((a, b) => getTileSortValue(a) - getTileSortValue(b));
+}
+
 export function generateDeck(includeFlowers = true) {
   let deck = [];
 
@@ -64,6 +98,13 @@ export function dealInitialHands(deck) {
     player2: [], // West
     player3: []  // North
   };
+  
+  const flowers = {
+    dealer: [],
+    player1: [],
+    player2: [],
+    player3: []
+  };
 
   // Deal 16 to everyone
   for (let i = 0; i < 16; i++) {
@@ -76,6 +117,33 @@ export function dealInitialHands(deck) {
   // Dealer gets 17th tile
   hands.dealer.push(shuffled.pop());
 
-  // In a real implementation, we would extract flowers and draw replacements here
-  return { hands, remainingDeck: shuffled };
+  // Extract flowers and recursively draw replacements 
+  const players = ['dealer', 'player1', 'player2', 'player3'];
+  for (let player of players) {
+     let hasFlower = true;
+     while (hasFlower && shuffled.length > 0) {
+        hasFlower = false;
+        // Loop backwards so splicing doesn't skip indices
+        for (let i = hands[player].length - 1; i >= 0; i--) {
+           const tile = hands[player][i];
+           if (tile.startsWith('Flower') || tile.startsWith('Season')) {
+               flowers[player].push(tile);
+               hands[player].splice(i, 1);
+               // Pull replacement from back of wall (end of shuffled array)
+               const replacement = shuffled.pop();
+               if (replacement) {
+                   hands[player].push(replacement);
+                   hasFlower = true; // Force another check in case new draw is a flower
+               }
+           }
+        }
+     }
+  }
+
+  // Sort the final resolved standard hands via Mahjong heuristics
+  for (let player of players) {
+      hands[player] = sortHand(hands[player]);
+  }
+
+  return { hands, flowers, remainingDeck: shuffled };
 }

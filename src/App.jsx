@@ -7,6 +7,7 @@ import { Sparkles, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 function App() {
   const [boardState, setBoardState] = useState(null)
   const [playerHand, setPlayerHand] = useState([])
+  const [playerFlowers, setPlayerFlowers] = useState([])
   const [selectedTile, setSelectedTile] = useState(null)
   
   // AI State
@@ -23,12 +24,12 @@ function App() {
 
   const startNewGame = () => {
     const deck = generateDeck(true);
-    const { hands, remainingDeck } = dealInitialHands(deck);
+    const { hands, flowers, remainingDeck } = dealInitialHands(deck);
     setBoardState({ hands, remainingDeck });
     
-    // Sort player's hand for visual clarity (Simplified alphabetical sort)
-    const sortedHand = [...hands.dealer].sort();
-    setPlayerHand(sortedHand);
+    // playerHand is already sorted via the heuristic inside dealInitialHands
+    setPlayerHand(hands.dealer);
+    setPlayerFlowers(flowers.dealer || []);
     setSelectedTile(null);
     setCoachMessages([
       { id: 1, role: 'ai', text: 'New game started! I am ready to analyze your hand.' }
@@ -107,12 +108,21 @@ function App() {
 
       {/* 2. PLAYER TRAY (Middle in portrait, Bottom in desktop) */}
       <div 
-         className="col-start-1 row-start-2 md:col-start-1 md:col-span-3 md:row-start-2 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] bg-wood-light border-t-[2px] sm:border-t-[6px] border-wood flex items-end px-1 sm:px-6 py-2 overflow-x-auto"
+         className="col-start-1 row-start-2 md:col-start-1 md:col-span-3 md:row-start-2 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] bg-wood-light border-t-[2px] sm:border-t-[6px] border-wood flex flex-col justify-end px-1 sm:px-6 py-2 overflow-x-auto"
          style={{ 
            scrollbarWidth: 'none',
            backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 0h40v40H0V0zm20 20h20v20H20V20zM0 20h20v20H0V20z\' fill=\'%233e2723\' fill-opacity=\'0.2\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")' 
          }}
       >
+         {/* Bonus Rack for Extracted Flowers */}
+         {playerFlowers.length > 0 && (
+           <div className="flex bg-black/10 p-1 sm:p-2 rounded-lg backdrop-blur-sm shadow-inner w-max mx-auto mb-2 transform scale-75 sm:scale-90 opacity-90 transition-all duration-500">
+             {playerFlowers.map((flower, i) => (
+                <Tile key={`flower-${flower}-${i}`} tileName={flower} />
+             ))}
+           </div>
+         )}
+         
          <div className="flex bg-black/20 p-1 sm:p-2 rounded-lg backdrop-blur-sm border-b-[4px] border-black/30 w-max shrink-0 shadow-lg mx-auto">
            {playerHand.map((tile, i) => (
              <Tile 
