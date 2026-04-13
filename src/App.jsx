@@ -419,13 +419,12 @@ function App() {
            
            {/* Exposed Active Melds (Pon/Chow) mounted horizontally isolated from remaining hand */}
            {playerExposed.length > 0 && playerExposed.map((meld, mIdx) => (
-              <div key={`exp-${mIdx}`} className="flex ml-2 sm:ml-4 pl-2 sm:pl-4 border-l-[3px] border-yellow-500/80 mr-2 sm:mr-4 gap-[1px] sm:gap-[2px] bg-black/20 rounded shadow-inner p-1 sm:p-2 scale-[0.95] transform">
+              <div key={`exp-${mIdx}`} className="flex ml-1 sm:ml-2 pl-1 sm:pl-2 border-l-[3px] border-yellow-500/80 mr-1 sm:mr-2 gap-0 bg-black/20 rounded shadow-inner p-1 sm:p-2 scale-[0.95] transform">
                  {meld.map((t, i) => (
                     <div key={`et-${mIdx}-${i}`} className="opacity-90">
                         <Tile tileName={t} />
                     </div>
                  ))}
-                 <div className="absolute -top-3 sm:-top-4 left-1/2 transform -translate-x-1/2 text-[8px] sm:text-[10px] text-yellow-500 font-bold uppercase tracking-widest whitespace-nowrap bg-black/60 px-2 rounded-full border border-yellow-500/30">Meld</div>
               </div>
            ))}
            
@@ -433,7 +432,7 @@ function App() {
            <div className="flex">
                {playerHand.map((tile, i) => {
                   return (
-                     <div key={`${tile}-${i}`} className={`relative ${isNewlyDrawn(i) ? 'ml-4 sm:ml-8 border-l-2 border-emerald-500/30 pl-2 sm:pl-4 transition-all duration-300' : ''}`}>
+                     <div key={`${tile}-${i}`} className={`relative ${isNewlyDrawn(i) ? 'ml-2 sm:ml-4 border-l-2 border-emerald-500/30 pl-1 sm:pl-2 transition-all duration-300' : ''}`}>
                         {isNewlyDrawn(i) && currentTurn === 0 && gamePhase === 'playing' && !pendingInteraction && (
                            <div className="absolute -top-4 sm:-top-6 left-1/2 transform -translate-x-1/2 text-[8px] sm:text-xs text-emerald-300 font-bold whitespace-nowrap animate-bounce drop-shadow-md">
                               DRAWN
