@@ -1,6 +1,8 @@
 import React from 'react';
+import { useIsMobile } from '../hooks/useMobile';
 
 const Tile = ({ tileName, onClick, selected }) => {
+  const isMobile = useIsMobile();
   const isFlower = tileName.includes('Flower');
   const isSeason = tileName.includes('Season');
   const isPlaceholder = isFlower || isSeason;
@@ -21,7 +23,7 @@ const Tile = ({ tileName, onClick, selected }) => {
     <div 
       onClick={() => onClick && onClick(tileName)}
       className={`
-        relative w-8 h-12 sm:w-10 sm:h-14 md:w-12 md:h-16 lg:w-16 lg:h-24 mx-px my-0.5 sm:mx-0.5 sm:my-1 lg:m-1 cursor-pointer select-none
+        relative ${isMobile ? 'w-[28px] h-10 mx-[0.5px] my-0.5' : 'w-8 h-12 sm:w-10 sm:h-14 md:w-12 md:h-16 lg:w-16 lg:h-24 mx-px my-0.5 sm:mx-0.5 sm:my-1 lg:m-1'} cursor-pointer select-none
         transition-all duration-200 transform
         ${selected ? '-translate-y-4 shadow-2xl scale-110 drop-shadow-[0_10px_10px_rgba(0,100,0,0.5)]' : 'shadow-md hover:-translate-y-2 hover:shadow-xl'}
       `}

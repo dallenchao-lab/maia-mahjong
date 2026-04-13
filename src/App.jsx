@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { generateDeck, dealInitialHands, sortHand, checkWin, getAvailableInteractions, getAllAvailableChows, getAvailableSelfKongs } from './game/gameState'
 import { askMockCoach } from './ai/mockAiService'
+import { useIsMobile } from './hooks/useMobile'
 import Tile from './components/Tile'
 import { Sparkles, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 
@@ -21,6 +22,8 @@ function App() {
   const [currentTurn, setCurrentTurn] = useState(0) // 0: User, 1: Player1, 2: Player2, 3: Player3
   const [gamePhase, setGamePhase] = useState('playing') // 'playing' | 'win' | 'draw'
   const [pendingInteraction, setPendingInteraction] = useState(null) // { tile, sourceActor, actions: [] }
+  
+  const isMobile = useIsMobile()
   
   // AI State
   const [isCoachOpen, setIsCoachOpen] = useState(true)
@@ -398,7 +401,7 @@ function App() {
   const selfKongs = (currentTurn === 0 && gamePhase === 'playing' && !pendingInteraction) ? getAvailableSelfKongs(playerHand, playerExposed) : [];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 grid-rows-[1fr_auto_auto] md:grid-rows-[1fr_auto] h-screen w-screen overflow-hidden bg-felt text-white relative">
+    <div className={isMobile ? "absolute inset-0 w-full h-full flex flex-col overflow-hidden bg-felt text-white" : "grid grid-cols-1 md:grid-cols-3 grid-rows-[1fr_auto_auto] md:grid-rows-[1fr_auto] h-screen w-screen overflow-hidden bg-felt text-white relative"}>
       
       {/* GAME OVERLAYS */}
       {gamePhase === 'win' && (
@@ -487,7 +490,7 @@ function App() {
       )}
 
       {/* 1. TABLE CENTER */}
-      <div className="col-start-1 row-start-1 md:col-start-1 md:col-span-2 md:row-start-1 relative z-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)] flex flex-col min-h-0">
+      <div className={isMobile ? "flex-1 relative z-0 flex flex-col min-h-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]" : "col-start-1 row-start-1 md:col-start-1 md:col-span-2 md:row-start-1 relative z-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)] flex flex-col min-h-0"}>
          
          <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
             <button onClick={startNewGame} className="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-800 border border-green-600 rounded text-xs sm:text-base shadow-sm hover:bg-green-700 transition w-max">Rearrange & Redeal</button>
@@ -544,8 +547,13 @@ function App() {
 
       {/* 2. PLAYER TRAY */}
       <div 
-         className="col-start-1 row-start-2 md:col-start-1 md:col-span-3 md:row-start-2 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] bg-wood-light border-t-[2px] sm:border-t-[6px] border-wood flex flex-col justify-end px-1 sm:px-6 py-2 overflow-x-auto"
-         style={{ 
+         className={isMobile ? "relative z-30 flex flex-col justify-end w-full overflow-x-auto bg-wood-light border-t-[4px] border-wood pb-[max(0.25rem,env(safe-area-inset-bottom))]" : "col-start-1 row-start-2 md:col-start-1 md:col-span-3 md:row-start-2 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] bg-wood-light border-t-[2px] sm:border-t-[6px] border-wood flex flex-col justify-end px-1 sm:px-6 py-2 overflow-x-auto"}
+         style={isMobile ? { 
+           scrollbarWidth: 'none',
+           paddingLeft: 'max(0.25rem, env(safe-area-inset-left))',
+           paddingRight: 'max(0.25rem, env(safe-area-inset-right))',
+           backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 0h40v40H0V0zm20 20h20v20H20V20zM0 20h20v20H0V20z\' fill=\'%233e2723\' fill-opacity=\'0.2\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")' 
+         } : { 
            scrollbarWidth: 'none',
            backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 0h40v40H0V0zm20 20h20v20H20V20zM0 20h20v20H0V20z\' fill=\'%233e2723\' fill-opacity=\'0.2\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")' 
          }}
@@ -601,8 +609,9 @@ function App() {
       </div>
 
       {/* 3. AI COACH PANEL */}
-      <div className={`col-start-1 row-start-3 md:col-start-3 md:col-span-1 md:row-start-1 relative z-20 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] md:shadow-2xl bg-zinc-950 border-t border-white/10 md:border-t-0 md:border-l flex flex-col transition-all duration-300 overflow-hidden ${isCoachOpen ? 'h-[40vh] md:h-full' : 'h-14 sm:h-16 md:h-auto md:max-h-16'}`}>
-        <div 
+      {!isMobile && (
+        <div className={`col-start-1 row-start-3 md:col-start-3 md:col-span-1 md:row-start-1 relative z-20 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] md:shadow-2xl bg-zinc-950 border-t border-white/10 md:border-t-0 md:border-l flex flex-col transition-all duration-300 overflow-hidden ${isCoachOpen ? 'h-[40vh] md:h-full' : 'h-14 sm:h-16 md:h-auto md:max-h-16'}`}>
+          <div 
            className="p-3 sm:p-5 border-b border-white/10 bg-zinc-900/50 backdrop-blur flex justify-between items-center cursor-pointer select-none shrink-0"
            onClick={() => setIsCoachOpen(!isCoachOpen)}
         >
@@ -660,7 +669,7 @@ function App() {
              </button>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
