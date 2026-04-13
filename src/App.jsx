@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { generateDeck, dealInitialHands, sortHand, checkWin, getAvailableInteractions, getAllAvailableChows, getAvailableSelfKongs } from './game/gameState'
 import { askMockCoach } from './ai/mockAiService'
 import { useIsMobile } from './hooks/useMobile'
@@ -12,6 +12,14 @@ function App() {
   const [remainingDeck, setRemainingDeck] = useState([])
   const [opponents, setOpponents] = useState({ player1: [], player2: [], player3: [] })
   const [discardPile, setDiscardPile] = useState([])
+  const discardRef = useRef(null)
+  
+  // Auto-scroll discard field mapping physically displacing oldest rows
+  useEffect(() => {
+    if (discardRef.current) {
+       discardRef.current.scrollTop = discardRef.current.scrollHeight;
+    }
+  }, [discardPile]);
   
   // Player state
   const [playerHand, setPlayerHand] = useState([])
@@ -503,7 +511,7 @@ function App() {
          
          {/* Center Felt - Discards */}
          <div className="flex-1 flex flex-col items-center justify-center relative min-h-0 overflow-hidden w-full h-full p-4 sm:p-12">
-            <div className={`absolute inset-0 p-8 flex flex-wrap content-start items-start justify-center gap-1 sm:gap-2 overflow-y-auto ${discardPile.length === 0 ? 'opacity-0' : 'opacity-100'} transition-opacity duration-700`}>
+            <div ref={discardRef} className={`absolute inset-0 p-8 flex flex-wrap content-start items-start justify-center gap-1 sm:gap-2 overflow-y-auto scroll-smooth ${discardPile.length === 0 ? 'opacity-0' : 'opacity-100'} transition-opacity duration-700`}>
                {discardPile.map((t, idx) => (
                   <div key={`discard-${idx}`} className={`w-6 h-9 sm:w-10 sm:h-14 opacity-80 transform shadow-sm rounded flex items-center justify-center bg-[#FCFCFC] border border-gray-300/50 ${idx === discardPile.length - 1 && currentTurn !== 0 ? 'ring-2 ring-yellow-400/50 opacity-100 scale-105' : ''}`}>
                       <img src={`/tiles/${t}.svg?v=6`} className="w-full h-full object-contain p-[2px]" draggable={false} alt={t}/>
