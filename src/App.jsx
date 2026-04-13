@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { generateDeck, dealInitialHands, sortHand, checkWin, getAvailableInteractions, autoResolveChow, getAvailableSelfKongs } from './game/gameState'
+import { generateDeck, dealInitialHands, sortHand, checkWin, getAvailableInteractions, getAllAvailableChows, getAvailableSelfKongs } from './game/gameState'
 import { askMockCoach } from './ai/mockAiService'
 import Tile from './components/Tile'
 import { Sparkles, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
@@ -172,6 +172,26 @@ function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTurn, gamePhase, pendingInteraction]);
 
+  const executeChow = (seq) => {
+      let targetTile = pendingInteraction.tile;
+      let newHand = [...playerHand];
+      for (let neededTile of seq) {
+          if (neededTile !== targetTile) {
+              let idx = newHand.indexOf(neededTile);
+              if (idx > -1) newHand.splice(idx, 1);
+          }
+      }
+      
+      let newDiscard = [...discardPile];
+      newDiscard.pop(); // exfiltrate
+      setDiscardPile(newDiscard);
+      
+      setPlayerExposed(prev => [...prev, seq]);
+      setPlayerHand(sortHand(newHand));
+      setPendingInteraction(null);
+      setCurrentTurn(0);
+  }
+
   // Handle Pon/Chow Dialog Buttons
   const handleInteractionResponse = (action) => {
       if (!pendingInteraction) return;
@@ -255,24 +275,12 @@ function App() {
           }
           
       } else if (action === 'chow') {
-          let seq = autoResolveChow(playerHand, targetTile);
-          if (seq) {
-             let newHand = [...playerHand];
-             for (let neededTile of seq) {
-                 if (neededTile !== targetTile) {
-                     let idx = newHand.indexOf(neededTile);
-                     if (idx > -1) newHand.splice(idx, 1);
-                 }
-             }
-             
-             let newDiscard = [...discardPile];
-             newDiscard.pop();
-             
-             setDiscardPile(newDiscard);
-             setPlayerExposed(prev => [...prev, seq]);
-             setPlayerHand(sortHand(newHand));
-             setPendingInteraction(null);
-             setCurrentTurn(0);
+          const chows = getAllAvailableChows(playerHand, targetTile);
+          if (chows.length === 1) {
+              executeChow(chows[0]);
+          } else if (chows.length > 1) {
+              setPendingInteraction({ ...pendingInteraction, selectingChow: chows });
+              return;
           }
           
       } else if (action === 'hu') {
@@ -437,25 +445,43 @@ function App() {
                      <div className="transform scale-125 shadow-[0_0_20px_rgba(255,255,255,0.4)] rounded-lg"><Tile tileName={pendingInteraction.tile} /></div>
                  </div>
                  
-                 <div className="flex gap-4 sm:gap-6">
-                    <button onClick={() => handleInteractionResponse('pass')} className="px-6 py-2 bg-slate-700/80 hover:bg-slate-600 rounded-full text-white font-semibold transition-colors shadow-inner">Pass</button>
-                    
-                    {pendingInteraction.actions.includes('chow') && (
-                       <button onClick={() => handleInteractionResponse('chow')} className="px-8 py-2 bg-gradient-to-r from-blue-700 to-blue-500 hover:from-blue-600 hover:to-blue-400 border border-blue-300 shadow-[0_0_25px_rgba(59,130,246,0.6)] rounded-full text-white font-black text-lg transition-all transform hover:scale-110 active:scale-95">CHOW!</button>
-                    )}
-                    
-                    {pendingInteraction.actions.includes('pon') && (
-                       <button onClick={() => handleInteractionResponse('pon')} className="px-8 py-2 bg-gradient-to-r from-orange-700 to-orange-500 hover:from-orange-600 hover:to-orange-400 border border-orange-300 shadow-[0_0_25px_rgba(249,115,22,0.6)] rounded-full text-white font-black text-lg transition-all transform hover:scale-110 active:scale-95">PON!</button>
-                    )}
-                    
-                    {pendingInteraction.actions.includes('kong') && (
-                       <button onClick={() => handleInteractionResponse('kong')} className="px-8 py-2 bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-600 hover:to-purple-400 border border-purple-300 shadow-[0_0_25px_rgba(168,85,247,0.6)] rounded-full text-white font-black text-lg transition-all transform hover:scale-110 active:scale-95">KONG!</button>
-                    )}
-                    
-                    {pendingInteraction.actions.includes('hu') && (
-                       <button onClick={() => handleInteractionResponse('hu')} className="px-10 py-2 bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 border-2 border-yellow-300 shadow-[0_0_40px_rgba(220,38,38,1)] rounded-full text-yellow-200 font-black text-xl transition-all transform hover:scale-110 animate-pulse">WIN!</button>
-                    )}
-                 </div>
+                 {pendingInteraction.selectingChow ? (
+                     <div className="flex flex-col items-center gap-4">
+                         <h3 className="text-white font-bold mb-2">Select a Sequence:</h3>
+                         <div className="flex gap-4 sm:gap-6 items-center">
+                             {pendingInteraction.selectingChow.map((seq, idx) => (
+                                <button 
+                                  key={`chow-opt-${idx}`} 
+                                  onClick={() => executeChow(seq)}
+                                  className="flex gap-1 p-2 bg-blue-900/50 hover:bg-blue-800 rounded-xl border border-blue-400 shadow-[0_5px_15px_rgba(59,130,246,0.4)] transition-all transform hover:scale-105 active:scale-95"
+                                >
+                                   {seq.map((t, i) => <div key={i} className="scale-75 origin-center -mx-1"><Tile tileName={t} /></div>)}
+                                </button>
+                             ))}
+                         </div>
+                         <button onClick={() => setPendingInteraction({...pendingInteraction, selectingChow: null})} className="mt-2 px-6 py-1.5 bg-slate-700/80 hover:bg-slate-600 text-white text-sm rounded-full transition-colors">Cancel</button>
+                     </div>
+                 ) : (
+                     <div className="flex gap-4 sm:gap-6 items-center justify-center flex-wrap max-w-full">
+                        <button onClick={() => handleInteractionResponse('pass')} className="px-6 py-2 bg-slate-700/80 hover:bg-slate-600 rounded-full text-white font-semibold transition-colors shadow-inner">Pass</button>
+                        
+                        {pendingInteraction.actions.includes('chow') && (
+                           <button onClick={() => handleInteractionResponse('chow')} className="px-8 py-2 bg-gradient-to-r from-blue-700 to-blue-500 hover:from-blue-600 hover:to-blue-400 border border-blue-300 shadow-[0_0_25px_rgba(59,130,246,0.6)] rounded-full text-white font-black text-lg transition-all transform hover:scale-110 active:scale-95">CHOW!</button>
+                        )}
+                        
+                        {pendingInteraction.actions.includes('pon') && (
+                           <button onClick={() => handleInteractionResponse('pon')} className="px-8 py-2 bg-gradient-to-r from-orange-700 to-orange-500 hover:from-orange-600 hover:to-orange-400 border border-orange-300 shadow-[0_0_25px_rgba(249,115,22,0.6)] rounded-full text-white font-black text-lg transition-all transform hover:scale-110 active:scale-95">PON!</button>
+                        )}
+                        
+                        {pendingInteraction.actions.includes('kong') && (
+                           <button onClick={() => handleInteractionResponse('kong')} className="px-8 py-2 bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-600 hover:to-purple-400 border border-purple-300 shadow-[0_0_25px_rgba(168,85,247,0.6)] rounded-full text-white font-black text-lg transition-all transform hover:scale-110 active:scale-95">KONG!</button>
+                        )}
+                        
+                        {pendingInteraction.actions.includes('hu') && (
+                           <button onClick={() => handleInteractionResponse('hu')} className="px-10 py-2 bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 border-2 border-yellow-300 shadow-[0_0_40px_rgba(220,38,38,1)] rounded-full text-yellow-200 font-black text-xl transition-all transform hover:scale-110 animate-pulse">WIN!</button>
+                        )}
+                     </div>
+                 )}
              </div>
          </div>
       )}

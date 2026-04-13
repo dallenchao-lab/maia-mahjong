@@ -228,7 +228,7 @@ export function getAvailableInteractions(hand, discardedTile, isLeftPlayer) {
     
     // Check Chow (Sequence)
     let match = discardedTile.match(/^([A-Za-z]+)(\d)$/);
-    if (isLeftPlayer && match && ['Man', 'Pin', 'Sou'].includes(match[1])) {
+    if (match && ['Man', 'Pin', 'Sou'].includes(match[1])) {
         let suit = match[1];
         let num = parseInt(match[2], 10);
         let hasChow = false;
@@ -249,26 +249,26 @@ export function getAvailableInteractions(hand, discardedTile, isLeftPlayer) {
     return actions;
 }
 
-export function autoResolveChow(hand, discardedTile) {
+export function getAllAvailableChows(hand, discardedTile) {
     let match = discardedTile.match(/^([A-Za-z]+)(\d)$/);
-    if (!match) return null;
+    if (!match) return [];
     let suit = match[1];
     let num = parseInt(match[2], 10);
     
     let counts = {};
     for (let t of hand) counts[t] = (counts[t] || 0) + 1;
 
-    // Pick first mathematically viable sequence
+    let chows = [];
     if (counts[`${suit}${num-2}`] && counts[`${suit}${num-1}`]) {
-        return [`${suit}${num-2}`, `${suit}${num-1}`, discardedTile];
+        chows.push([`${suit}${num-2}`, `${suit}${num-1}`, discardedTile]);
     }
     if (counts[`${suit}${num-1}`] && counts[`${suit}${num+1}`]) {
-        return [`${suit}${num-1}`, discardedTile, `${suit}${num+1}`];
+        chows.push([`${suit}${num-1}`, discardedTile, `${suit}${num+1}`]);
     }
     if (counts[`${suit}${num+1}`] && counts[`${suit}${num+2}`]) {
-        return [discardedTile, `${suit}${num+1}`, `${suit}${num+2}`];
+        chows.push([discardedTile, `${suit}${num+1}`, `${suit}${num+2}`]);
     }
-    return null;
+    return chows;
 }
 
 export function getAvailableSelfKongs(hand, exposed) {
