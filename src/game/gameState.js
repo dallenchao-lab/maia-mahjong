@@ -228,7 +228,7 @@ export function getAvailableInteractions(hand, discardedTile, isLeftPlayer) {
     
     // Check Chow (Sequence)
     let match = discardedTile.match(/^([A-Za-z]+)(\d)$/);
-    if (match && ['Man', 'Pin', 'Sou'].includes(match[1])) {
+    if (isLeftPlayer && match && ['Man', 'Pin', 'Sou'].includes(match[1])) {
         let suit = match[1];
         let num = parseInt(match[2], 10);
         let hasChow = false;
