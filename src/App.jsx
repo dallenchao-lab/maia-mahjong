@@ -493,12 +493,12 @@ function App() {
       <div className={isMobile ? "flex-1 relative z-0 flex flex-col min-h-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]" : "col-start-1 row-start-1 md:col-start-1 md:col-span-2 md:row-start-1 relative z-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)] flex flex-col min-h-0"}>
          
          <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-            <button onClick={startNewGame} className="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-800 border border-green-600 rounded text-xs sm:text-base shadow-sm hover:bg-green-700 transition w-max">Rearrange & Redeal</button>
+            <button onClick={startNewGame} className="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-800 border border-green-600 rounded text-xs sm:text-base shadow-sm hover:bg-green-700 transition w-max">Redeal</button>
          </div>
          
          <div className={`absolute bottom-4 sm:bottom-6 left-4 sm:left-6 z-10 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-lg font-mono bg-black/40 rounded-lg border-2 text-white/90 shadow-xl transition-colors duration-500 flex gap-3 items-center tracking-wider ${currentTurn === 0 ? 'border-emerald-500 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.3)] backdrop-blur-sm' : 'border-white/10 backdrop-blur-sm'}`}>
             <span className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full ${currentTurn === 0 ? 'bg-emerald-400 animate-pulse outline outline-emerald-400/50 outline-2 outline-offset-1' : 'bg-white/20'}`}></span>
-            Wall: {remainingDeck.length}
+            Remaining: {remainingDeck.length}
          </div>
          
          {/* Center Felt - Discards */}
@@ -560,7 +560,7 @@ function App() {
       >
          {/* Bonus Rack for Extracted Flowers and Exposed Melds */}
          {(playerFlowers.length > 0 || playerExposed.length > 0) && (
-           <div className="flex bg-black/10 p-1 sm:p-2 rounded-lg backdrop-blur-sm shadow-inner w-max mx-auto mb-2 transform scale-75 sm:scale-90 transition-all duration-500 gap-2 sm:gap-6 items-center border border-black/20">
+           <div className="flex bg-black/10 p-1 sm:p-2 rounded-lg backdrop-blur-sm shadow-inner w-max mx-auto mb-0 transform scale-75 sm:scale-90 transition-all duration-500 gap-2 sm:gap-6 items-center border border-black/20">
              
              {/* Flowers Section */}
              {playerFlowers.length > 0 && (
