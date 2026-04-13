@@ -406,27 +406,33 @@ function App() {
            backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 0h40v40H0V0zm20 20h20v20H20V20zM0 20h20v20H0V20z\' fill=\'%233e2723\' fill-opacity=\'0.2\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")' 
          }}
       >
-         {/* Bonus Rack for Extracted Flowers */}
-         {playerFlowers.length > 0 && (
-           <div className="flex bg-black/10 p-1 sm:p-2 rounded-lg backdrop-blur-sm shadow-inner w-max mx-auto mb-2 transform scale-75 sm:scale-90 opacity-90 transition-all duration-500">
-             {playerFlowers.map((flower, i) => (
-                <Tile key={`flower-${flower}-${i}`} tileName={flower} />
+         {/* Bonus Rack for Extracted Flowers and Exposed Melds */}
+         {(playerFlowers.length > 0 || playerExposed.length > 0) && (
+           <div className="flex bg-black/10 p-1 sm:p-2 rounded-lg backdrop-blur-sm shadow-inner w-max mx-auto mb-2 transform scale-75 sm:scale-90 transition-all duration-500 gap-2 sm:gap-6 items-center border border-black/20">
+             
+             {/* Flowers Section */}
+             {playerFlowers.length > 0 && (
+                <div className="flex gap-[1px] opacity-90 p-1 bg-black/20 rounded shadow-inner border-b-2 border-green-800/50">
+                   {playerFlowers.map((flower, i) => (
+                      <Tile key={`flower-${flower}-${i}`} tileName={flower} />
+                   ))}
+                </div>
+             )}
+             
+             {/* Exposed Melds Section */}
+             {playerExposed.length > 0 && playerExposed.map((meld, mIdx) => (
+                <div key={`exp-${mIdx}`} className="flex gap-[1px] bg-black/20 rounded shadow-inner p-1 sm:p-2 border-b-2 border-yellow-500/80 transform hover:scale-105 transition-transform cursor-default">
+                   {meld.map((t, i) => (
+                      <div key={`et-${mIdx}-${i}`} className="opacity-95">
+                          <Tile tileName={t} />
+                      </div>
+                   ))}
+                </div>
              ))}
            </div>
          )}
          
          <div className={`flex p-1 sm:p-2 rounded-lg backdrop-blur-sm border-b-[4px] w-max shrink-0 shadow-lg mx-auto transition-colors duration-500 ${currentTurn === 0 ? 'bg-emerald-900/30 border-emerald-900/50' : 'bg-black/20 border-black/30'}`}>
-           
-           {/* Exposed Active Melds (Pon/Chow) mounted horizontally isolated from remaining hand */}
-           {playerExposed.length > 0 && playerExposed.map((meld, mIdx) => (
-              <div key={`exp-${mIdx}`} className="flex ml-1 sm:ml-2 pl-1 sm:pl-2 border-l-[3px] border-yellow-500/80 mr-1 sm:mr-2 gap-0 bg-black/20 rounded shadow-inner p-1 sm:p-2 scale-[0.95] transform">
-                 {meld.map((t, i) => (
-                    <div key={`et-${mIdx}-${i}`} className="opacity-90">
-                        <Tile tileName={t} />
-                    </div>
-                 ))}
-              </div>
-           ))}
            
            {/* Main Remaining Interactive Hand */}
            <div className="flex">
