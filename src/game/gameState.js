@@ -147,3 +147,65 @@ export function dealInitialHands(deck) {
 
   return { hands, flowers, remainingDeck: shuffled };
 }
+
+export function checkWin(hand) {
+  if (hand.length !== 17) return false;
+
+  let counts = {};
+  for (let tile of hand) {
+      counts[tile] = (counts[tile] || 0) + 1;
+  }
+
+  const uniqueTiles = Object.keys(counts);
+  for (let tile of uniqueTiles) {
+      if (counts[tile] >= 2) {
+          counts[tile] -= 2; 
+          
+          if (checkRemainingMelds({...counts})) {
+              return true;
+          }
+          
+          counts[tile] += 2; 
+      }
+  }
+  return false;
+}
+
+function checkRemainingMelds(counts) {
+  let totalTiles = Object.values(counts).reduce((a, b) => a + b, 0);
+  if (totalTiles === 0) return true;
+
+  let keys = Object.keys(counts).sort((a,b) => getTileSortValue(a) - getTileSortValue(b));
+  let firstTile = keys.find(k => counts[k] > 0);
+  
+  if (!firstTile) return true;
+
+  if (counts[firstTile] >= 3) {
+      counts[firstTile] -= 3;
+      if (checkRemainingMelds(counts)) return true;
+      counts[firstTile] += 3;
+  }
+
+  let match = firstTile.match(/^([A-Za-z]+)(\d)$/);
+  if (match) {
+      let suit = match[1];
+      let num = parseInt(match[2], 10);
+      
+      if (['Man', 'Pin', 'Sou'].includes(suit) && num <= 7) {
+          let t2 = `${suit}${num + 1}`;
+          let t3 = `${suit}${num + 2}`;
+          
+          if (counts[t2] > 0 && counts[t3] > 0) {
+              counts[firstTile]--;
+              counts[t2]--;
+              counts[t3]--;
+              if (checkRemainingMelds(counts)) return true;
+              counts[firstTile]++;
+              counts[t2]++;
+              counts[t3]++;
+          }
+      }
+  }
+
+  return false;
+}
