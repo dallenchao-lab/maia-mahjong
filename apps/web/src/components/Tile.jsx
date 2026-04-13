@@ -1,0 +1,57 @@
+import React from 'react';
+import { useIsMobile } from '../hooks/useMobile';
+
+const Tile = ({ tileName, onClick, selected }) => {
+  const isMobile = useIsMobile();
+  const isFlower = tileName.includes('Flower');
+  const isSeason = tileName.includes('Season');
+  const isPlaceholder = isFlower || isSeason;
+
+  // Determine the display label for placeholders
+  let label = '';
+  if (isFlower) {
+    const num = tileName.replace('Flower', '');
+    const names = ['Plum', 'Orchid', 'Chrys.', 'Bamboo'];
+    label = names[parseInt(num) - 1] || 'Flower';
+  } else if (isSeason) {
+    const num = tileName.replace('Season', '');
+    const names = ['Spring', 'Summer', 'Autumn', 'Winter'];
+    label = names[parseInt(num) - 1] || 'Season';
+  }
+
+  return (
+    <div 
+      onClick={() => onClick && onClick(tileName)}
+      className={`
+        relative ${isMobile ? 'w-8 h-12 mx-[1px] my-0.5' : 'w-8 h-12 sm:w-10 sm:h-14 md:w-12 md:h-16 lg:w-16 lg:h-24 mx-px my-0.5 sm:mx-0.5 sm:my-1 lg:m-1'} cursor-pointer select-none
+        transition-all duration-200 transform
+        ${selected ? '-translate-y-4 shadow-2xl scale-110 drop-shadow-[0_10px_10px_rgba(0,100,0,0.5)]' : 'shadow-md hover:-translate-y-2 hover:shadow-xl'}
+      `}
+      style={{
+        borderRadius: '4px',
+        backgroundColor: '#FCFCFC',
+        boxShadow: selected ? '0px 10px 0px #cfcfcf, 0px 15px 15px rgba(0,0,0,0.4)' : '0px 4px 0px #cfcfcf, 0px 6px 8px rgba(0,0,0,0.3)',
+      }}
+    >
+      <div className="absolute inset-x-0 bottom-0 top-0 rounded overflow-hidden">
+        {isPlaceholder ? (
+          <div className="w-full h-full flex flex-col items-center justify-center p-1 relative border border-gray-100 rounded">
+            <span className="text-[10px] sm:text-xs font-bold text-green-800 z-10 block whitespace-nowrap overflow-hidden text-ellipsis w-full text-center">
+              {label}
+            </span>
+            <span className="text-xl sm:text-2xl mt-1 z-10 opacity-80">{isFlower ? '🌸' : '☀️'}</span>
+          </div>
+        ) : (
+          <img 
+            src={`/tiles/${tileName}.svg?v=6`} 
+            alt={tileName}
+            className="w-full h-full object-contain p-0.5 sm:p-1 border border-gray-100 rounded"
+            draggable={false}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Tile;
