@@ -31,7 +31,7 @@ export async function askCoach(hand, exposed = [], flowers = [], discardPile = [
   } catch (err) {
     console.warn('AI coach unavailable, falling back to heuristic:', err.message)
     const analysis = evaluateDiscard(hand, false)
-    return `*(Offline — heuristic fallback)*\n\nDiscard **${formatTile(analysis.recommendedDiscard)}**. ${analysis.reason}`
+    return `Discard **${formatTile(analysis.recommendedDiscard)}**. ${analysis.reason}`
   }
 }
 
@@ -50,7 +50,7 @@ export async function askCoachInterrupt(hand, exposed = [], discardedTile, avail
     console.warn('AI coach unavailable for interrupt:', err.message)
     const tile = formatTile(discardedTile)
     if (availableActions.includes('hu')) return `**Win!** — ${tile} completes your hand. Declare victory immediately.`
-    if (availableActions.includes('pon')) return `*(Offline)* Consider **Pon** on ${tile} if it completes a triplet that advances your hand.`
-    return `*(Offline)* No strong recommendation — **Pass** if unsure.`
+    if (availableActions.includes('pon')) return `Consider **Pon** on ${tile} if it completes a triplet that advances your hand.`
+    return `No strong recommendation — **Pass** if unsure.`
   }
 }
