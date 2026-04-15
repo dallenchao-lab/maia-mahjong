@@ -29,6 +29,7 @@ function App() {
   
   const [currentTurn, setCurrentTurn] = useState(0) // 0: User, 1: Player1, 2: Player2, 3: Player3
   const [gamePhase, setGamePhase] = useState('playing') // 'playing' | 'win' | 'draw'
+  const [winType, setWinType] = useState('zimo') // 'zimo' (self-draw) | 'hupai' (claim discard)
   const [pendingInteraction, setPendingInteraction] = useState(null) // { tile, sourceActor, actions: [] }
   
   const isMobile = useIsMobile()
@@ -68,6 +69,7 @@ function App() {
     setDiscardPile([]);
     setCurrentTurn(0);
     setGamePhase('playing');
+    setWinType('zimo');
     setPendingInteraction(null);
     setSelectedTile(null);
     setCoachMessages([
@@ -113,6 +115,7 @@ function App() {
       setCurrentTurn(0);
       
       if (checkWin(freshPlayersDeck)) {
+          setWinType('zimo');
           setGamePhase('win');
       }
   }
@@ -283,9 +286,10 @@ function App() {
           setCurrentTurn(0);
           
           if (checkWin(newHand)) {
+              setWinType('zimo');
               setGamePhase('win');
           }
-          
+
       } else if (action === 'chow') {
           const chows = getAllAvailableChows(playerHand, targetTile);
           if (chows.length === 1) {
@@ -301,6 +305,7 @@ function App() {
           newDiscard.pop();
           setDiscardPile(newDiscard);
           setPlayerHand(newHand);
+          setWinType('hupai');
           setGamePhase('win');
           setPendingInteraction(null);
       }
@@ -360,6 +365,7 @@ function App() {
       setRemainingDeck(freshDeck);
       
       if (checkWin(newHand)) {
+          setWinType('zimo');
           setGamePhase('win');
       }
   }
@@ -437,8 +443,15 @@ function App() {
       {gamePhase === 'win' && (
          <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md">
             <div className="bg-red-700 border-4 border-yellow-400 p-8 sm:p-12 rounded-3xl shadow-[0_0_150px_rgba(255,0,0,1)] transform text-center flex flex-col items-center animate-in fade-in zoom-in duration-500">
-               <h1 className="text-5xl sm:text-7xl font-black text-yellow-300 drop-shadow-[0_5px_10px_rgba(0,0,0,0.8)] mb-2 tracking-wider">HU!</h1>
-               <h2 className="text-2xl sm:text-3xl font-bold text-yellow-100 mb-6 drop-shadow-md border-b border-yellow-400/30 pb-4">VICTORY</h2>
+               <h1 className="text-5xl sm:text-7xl font-black text-yellow-300 drop-shadow-[0_5px_10px_rgba(0,0,0,0.8)] mb-2 tracking-wider">
+                 {winType === 'zimo' ? '自摸!' : '胡牌!'}
+               </h1>
+               <h2 className="text-2xl sm:text-3xl font-bold text-yellow-100 drop-shadow-md tracking-wider">
+                 {winType === 'zimo' ? 'Self-Drawn Victory' : 'Winning Discard Claim'}
+               </h2>
+               <p className="text-yellow-300/70 text-sm font-medium tracking-widest uppercase mb-6 mt-1 border-b border-yellow-400/30 pb-4 w-full text-center">
+                 {winType === 'zimo' ? 'Zì Mō' : 'Hú Pái'}
+               </p>
                
                <div className="flex bg-black/40 p-3 sm:p-5 rounded-2xl shadow-[inset_0_10px_30px_rgba(0,0,0,0.5)] mb-8 transform scale-90 sm:scale-100 max-w-[90vw] overflow-x-auto gap-4 items-center">
                   {/* Winning hand renders exposed melds cleanly separately */}
