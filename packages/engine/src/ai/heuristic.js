@@ -45,12 +45,31 @@ export function rankDiscards(hand) {
       // Pair / triplet bonus — these tiles have meld potential
       const groupBonus = count === 2 ? 25 : count >= 3 ? 55 : 0;
 
-      // Sequence connectivity bonus — neighbors in hand are valuable
+      // Sequence scoring — prioritize complete sequences over partial ones
       let seqBonus = 0;
       if (SUITS.includes(suit)) {
-        for (const d of [-2, -1, 1, 2]) {
-          const n = num + d;
-          if (n >= 1 && n <= 9 && counts[`${suit}${n}`]) seqBonus += 6;
+        // All 3-tile windows that include this tile
+        const windows = [
+          [num - 2, num - 1, num],
+          [num - 1, num,     num + 1],
+          [num,     num + 1, num + 2],
+        ];
+        const inCompleteSeq = windows.some(([a, b, c]) =>
+          a >= 1 && c <= 9 &&
+          counts[`${suit}${a}`] >= 1 &&
+          counts[`${suit}${b}`] >= 1 &&
+          counts[`${suit}${c}`] >= 1
+        );
+
+        if (inCompleteSeq) {
+          // Tile is part of a finished run — protect it like a meld
+          seqBonus = 50;
+        } else {
+          // Partial connectivity: count useful neighbors for future sequences
+          for (const d of [-2, -1, 1, 2]) {
+            const n = num + d;
+            if (n >= 1 && n <= 9 && counts[`${suit}${n}`]) seqBonus += 6;
+          }
         }
       }
 
