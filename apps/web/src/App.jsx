@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { generateDeck, dealInitialHands, sortHand, checkWin, getAvailableInteractions, getAllAvailableChows, getAvailableSelfKongs } from '@maia-mahjong/engine'
+import { generateDeck, dealInitialHands, sortHand, checkWin, getAvailableInteractions, getAllAvailableChows, getAvailableSelfKongs, calculateScore } from '@maia-mahjong/engine'
 import { askCoach, askCoachInterrupt } from '@maia-mahjong/engine'
 import { useIsMobile } from './hooks/useMobile'
 import Tile from './components/Tile'
@@ -30,6 +30,7 @@ function App() {
   const [currentTurn, setCurrentTurn] = useState(0) // 0: User, 1: Player1, 2: Player2, 3: Player3
   const [gamePhase, setGamePhase] = useState('playing') // 'playing' | 'win' | 'draw'
   const [winType, setWinType] = useState('zimo') // 'zimo' (self-draw) | 'hupai' (claim discard)
+  const [winScore, setWinScore] = useState(null) // { total, breakdown } | null
   const [pendingInteraction, setPendingInteraction] = useState(null) // { tile, sourceActor, actions: [] }
   
   const isMobile = useIsMobile()
@@ -70,6 +71,7 @@ function App() {
     setCurrentTurn(0);
     setGamePhase('playing');
     setWinType('zimo');
+    setWinScore(null);
     setPendingInteraction(null);
     setSelectedTile(null);
     setCoachMessages([
@@ -115,8 +117,7 @@ function App() {
       setCurrentTurn(0);
       
       if (checkWin(freshPlayersDeck)) {
-          setWinType('zimo');
-          setGamePhase('win');
+          triggerWin('zimo', freshPlayersDeck, playerExposed, freshPlayerFlowers);
       }
   }
 
@@ -286,8 +287,7 @@ function App() {
           setCurrentTurn(0);
           
           if (checkWin(newHand)) {
-              setWinType('zimo');
-              setGamePhase('win');
+              triggerWin('zimo', newHand, [...playerExposed, extracted], freshPlayerFlowers);
           }
 
       } else if (action === 'chow') {
@@ -305,8 +305,7 @@ function App() {
           newDiscard.pop();
           setDiscardPile(newDiscard);
           setPlayerHand(newHand);
-          setWinType('hupai');
-          setGamePhase('win');
+          triggerWin('hupai', newHand, playerExposed, playerFlowers);
           setPendingInteraction(null);
       }
   }
@@ -365,9 +364,14 @@ function App() {
       setRemainingDeck(freshDeck);
       
       if (checkWin(newHand)) {
-          setWinType('zimo');
-          setGamePhase('win');
+          triggerWin('zimo', newHand, newExposed, freshPlayerFlowers);
       }
+  }
+
+  const triggerWin = (type, hand, exposed, flowers) => {
+    setWinType(type)
+    setWinScore(calculateScore({ hand, exposed, flowers, winType: type }))
+    setGamePhase('win')
   }
 
   const handleTileClick = (tileName) => {
@@ -449,9 +453,33 @@ function App() {
                <h2 className="text-2xl sm:text-3xl font-bold text-yellow-100 drop-shadow-md tracking-wider">
                  {winType === 'zimo' ? 'Self-Drawn Victory' : 'Winning Discard Claim'}
                </h2>
-               <p className="text-yellow-300/70 text-sm font-medium tracking-widest uppercase mb-6 mt-1 border-b border-yellow-400/30 pb-4 w-full text-center">
+               <p className="text-yellow-300/70 text-sm font-medium tracking-widest uppercase mt-1 w-full text-center">
                  {winType === 'zimo' ? 'Zì Mō' : 'Hú Pái'}
                </p>
+
+               {/* Score Breakdown */}
+               {winScore && (
+                 <div className="w-full border-t border-yellow-400/30 pt-4 mt-4 mb-6">
+                   {winScore.breakdown.length > 0 ? (
+                     <>
+                       <div className="space-y-1.5 mb-3">
+                         {winScore.breakdown.map((item, i) => (
+                           <div key={i} className="flex justify-between items-center text-sm text-yellow-100/90 px-2">
+                             <span>{item.label}</span>
+                             <span className="font-bold text-yellow-300 ml-6">+{item.points}</span>
+                           </div>
+                         ))}
+                       </div>
+                       <div className="flex justify-between items-center border-t border-yellow-400/40 pt-2 px-2">
+                         <span className="font-bold text-yellow-200 uppercase tracking-wider text-sm">Total</span>
+                         <span className="font-black text-2xl text-yellow-300">{winScore.total} pt{winScore.total !== 1 ? 's' : ''}</span>
+                       </div>
+                     </>
+                   ) : (
+                     <p className="text-yellow-100/50 text-sm text-center italic">No bonus points this round.</p>
+                   )}
+                 </div>
+               )}
                
                <div className="flex bg-black/40 p-3 sm:p-5 rounded-2xl shadow-[inset_0_10px_30px_rgba(0,0,0,0.5)] mb-8 transform scale-90 sm:scale-100 max-w-[90vw] overflow-x-auto gap-4 items-center">
                   {/* Winning hand renders exposed melds cleanly separately */}
