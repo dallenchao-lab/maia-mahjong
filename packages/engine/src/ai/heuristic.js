@@ -131,12 +131,23 @@ export function rankDiscards(hand) {
         );
 
         if (inCompleteSeq) {
-          seqBonus = 50; // Part of a finished run — protect it
+          // Part of a finished 3-tile run — strongly protect
+          seqBonus = 50;
         } else {
-          for (const d of [-2, -1, 1, 2]) {
+          // 2-tile partial sequence (meld in progress):
+          // Adjacent neighbor (e.g. 2+3) = two-sided or edge wait → strong partial
+          const hasAdjacent = [-1, 1].some(d => {
             const n = num + d;
-            if (n >= 1 && n <= 9 && counts[`${suit}${n}`]) seqBonus += 6;
-          }
+            return n >= 1 && n <= 9 && counts[`${suit}${n}`];
+          });
+          // Kanchan neighbor (e.g. 2+4) = middle wait → weaker partial
+          const hasKanchan = [-2, 2].some(d => {
+            const n = num + d;
+            return n >= 1 && n <= 9 && counts[`${suit}${n}`];
+          });
+
+          if (hasAdjacent) seqBonus = 30; // Two-tile sequential — meaningful meld start
+          else if (hasKanchan) seqBonus = 18; // Kanchan — one-way wait, still worth keeping
         }
       }
 
