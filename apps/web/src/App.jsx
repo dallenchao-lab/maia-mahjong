@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { generateDeck, dealInitialHands, sortHand, checkWin, getAvailableInteractions, getAllAvailableChows, getAvailableSelfKongs } from '@maia-mahjong/engine'
-import { askMockCoach } from '@maia-mahjong/engine'
+import { askCoach, askCoachInterrupt } from '@maia-mahjong/engine'
 import { useIsMobile } from './hooks/useMobile'
 import Tile from './components/Tile'
 import { Sparkles, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
@@ -39,6 +39,7 @@ function App() {
     { id: 1, role: 'ai', text: 'I am ready to analyze your hand when prompted.' }
   ])
   const [isThinking, setIsThinking] = useState(false)
+  const [interruptAdvice, setInterruptAdvice] = useState(null) // advice text shown in interrupt modal
 
   // Initialize Game
   useEffect(() => {
@@ -369,19 +370,40 @@ function App() {
 
   const handleAskCoach = async () => {
     if (isThinking) return;
-    
-    setCoachMessages(prev => [...prev, { id: Date.now(), role: 'user', text: 'What should I do?' }]);
+
+    setCoachMessages(prev => [...prev, { id: Date.now(), role: 'user', text: 'What should I discard?' }]);
     setIsThinking(true);
 
     try {
-      const response = await askMockCoach(playerHand, false);
+      const response = await askCoach(playerHand, playerExposed, playerFlowers, discardPile, remainingDeck.length);
       setCoachMessages(prev => [...prev, { id: Date.now(), role: 'ai', text: response }]);
     } catch (error) {
-      setCoachMessages(prev => [...prev, { id: Date.now(), role: 'ai', text: 'Sorry, my advanced heuristic engine encountered a glitch! ' + error.message }]);
+      setCoachMessages(prev => [...prev, { id: Date.now(), role: 'ai', text: 'Coach offline: ' + error.message }]);
     } finally {
       setIsThinking(false);
     }
   }
+
+  // Auto-fire interrupt advice whenever a new pendingInteraction appears
+  useEffect(() => {
+    if (!pendingInteraction || pendingInteraction.selectingChow) {
+      setInterruptAdvice(null);
+      return;
+    }
+    let cancelled = false;
+    setInterruptAdvice(null);
+    askCoachInterrupt(
+      playerHand,
+      playerExposed,
+      pendingInteraction.tile,
+      pendingInteraction.actions,
+      pendingInteraction.sourceActor
+    ).then(advice => {
+      if (!cancelled) setInterruptAdvice(advice);
+    });
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingInteraction?.tile, pendingInteraction?.sourceActor]);
 
   const handleDiscard = (tileToDiscard) => {
     if (gamePhase !== 'playing' || currentTurn !== 0) return;
@@ -456,6 +478,22 @@ function App() {
                      <div className="transform scale-125 shadow-[0_0_20px_rgba(255,255,255,0.4)] rounded-lg"><Tile tileName={pendingInteraction.tile} /></div>
                  </div>
                  
+                 {/* Maia interrupt advice */}
+                 {!pendingInteraction.selectingChow && (
+                   <div className="mb-4 w-full max-w-sm min-h-[36px] flex items-center justify-center">
+                     {interruptAdvice ? (
+                       <p className="text-xs text-emerald-300 text-center leading-relaxed bg-emerald-950/60 border border-emerald-700/40 px-3 py-2 rounded-xl">
+                         <span className="font-bold text-emerald-400">Maia: </span>
+                         {interruptAdvice.split('**').map((part, i) => i % 2 === 1 ? <strong key={i} className="text-white">{part}</strong> : part)}
+                       </p>
+                     ) : (
+                       <p className="text-xs text-zinc-500 italic flex items-center gap-1.5">
+                         <Loader2 className="w-3 h-3 animate-spin" /> Maia is thinking...
+                       </p>
+                     )}
+                   </div>
+                 )}
+
                  {pendingInteraction.selectingChow ? (
                      <div className="flex flex-col items-center gap-4">
                          <h3 className="text-white font-bold mb-2">Select a Sequence:</h3>
@@ -629,9 +667,9 @@ function App() {
                  <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 ${currentTurn === 0 ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`}></span>
                  <span className={`relative inline-flex rounded-full h-2 w-2 sm:h-3 sm:w-3 ${currentTurn === 0 ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
                </div>
-               Antigravity Coach
+               Maia Coach
             </h2>
-            <p className="text-[10px] sm:text-xs text-white/40 mt-0.5 ml-4 sm:ml-6">v1.0 Dallen Heuristics Engine</p>
+            <p className="text-[10px] sm:text-xs text-white/40 mt-0.5 ml-4 sm:ml-6">Powered by Claude · Dallen Heuristics Fallback</p>
           </div>
           <div className="p-2 sm:p-1 hover:bg-white/10 rounded-full transition-colors">
              {isCoachOpen ? <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-white/50" /> : <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 text-white/50" />}
