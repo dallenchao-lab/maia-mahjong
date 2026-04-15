@@ -471,7 +471,6 @@ function App() {
       {pendingInteraction && (
          <div className="absolute inset-x-0 bottom-32 md:bottom-1/3 z-50 flex justify-center items-center pointer-events-none animate-in slide-in-from-bottom-5">
              <div className="bg-black/80 border border-yellow-500/80 p-4 sm:p-8 rounded-3xl shadow-[0_0_80px_rgba(234,179,8,0.3)] flex flex-col items-center pointer-events-auto backdrop-blur-xl">
-                 <div className="absolute -top-6 bg-yellow-500 text-black px-4 py-1 rounded-full font-bold text-xs uppercase tracking-widest shadow-lg">Interrupt Request</div>
                  
                  <div className="flex items-center gap-6 mb-6">
                      <p className="text-yellow-100 text-sm opacity-80">Player {pendingInteraction.sourceActor} discarded:</p>

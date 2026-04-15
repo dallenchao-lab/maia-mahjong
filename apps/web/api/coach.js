@@ -18,7 +18,7 @@ Mahjong concepts you know:
 - Hu (胡): winning hand = 5 melds + 1 pair (or special hands)
 - Tenpai / Tīng Pái: one tile away from winning
 
-Keep responses under 3 sentences. Be direct — lead with the recommendation, then the reasoning.`
+Always lead with the specific action in bold (e.g. **Discard Man1** or **Pon**). Follow with 1-2 sentences explaining the concrete reason using the actual tile names from the player's hand. Never give generic advice like "if it helps your hand" — always reference specific tiles and the meld or strategy they enable.`
 }
 
 function buildDiscardPrompt(hand, exposed, flowers, discardPile, remainingCount) {
@@ -37,9 +37,9 @@ function buildInterruptPrompt(hand, exposed, discardedTile, availableActions, so
   return `Player ${sourcePlayer} just discarded: ${discardedTile}
 My hand: ${hand.join(', ')}
 Exposed melds: ${exposed.length ? exposed.map(m => m.join('-')).join(' | ') : 'none'}
-Options available to me: ${availableActions.join(', ')}
+Options available: ${availableActions.join(', ')}
 
-Should I claim this tile, and which action should I take?`
+Give me a direct, educational recommendation. Start with the action I should take (e.g. "Pon", "Pass", "Chow") in bold, then explain in 1-2 sentences exactly why — what meld it completes, how it moves me toward winning, or why passing is smarter. Be specific about my tiles, not generic.`
 }
 
 // Shared request handler — used by both Vite dev middleware and Vercel function
