@@ -2,7 +2,7 @@
  * Real AI Coach service — calls /api/coach which proxies to Claude.
  * Falls back to the heuristic engine if the API is unreachable.
  */
-import { evaluateDiscard } from './heuristic.js'
+import { evaluateDiscard, formatTile } from './heuristic.js'
 
 async function callCoach(payload) {
   const res = await fetch('/api/coach', {
@@ -31,7 +31,7 @@ export async function askCoach(hand, exposed = [], flowers = [], discardPile = [
   } catch (err) {
     console.warn('AI coach unavailable, falling back to heuristic:', err.message)
     const analysis = evaluateDiscard(hand, false)
-    return `*(Offline — heuristic fallback)*\n\nDiscard **${analysis.recommendedDiscard}**. ${analysis.reason}`
+    return `*(Offline — heuristic fallback)*\n\nDiscard **${formatTile(analysis.recommendedDiscard)}**. ${analysis.reason}`
   }
 }
 
@@ -48,8 +48,9 @@ export async function askCoachInterrupt(hand, exposed = [], discardedTile, avail
     return await callCoach({ mode: 'interrupt', hand, exposed, discardedTile, availableActions, sourcePlayer })
   } catch (err) {
     console.warn('AI coach unavailable for interrupt:', err.message)
-    if (availableActions.includes('hu')) return `**WIN** — You have a winning hand! Declare Hu immediately.`
-    if (availableActions.includes('pon')) return `*(Offline)* Consider **Pon** if it advances your hand.`
+    const tile = formatTile(discardedTile)
+    if (availableActions.includes('hu')) return `**Win!** — ${tile} completes your hand. Declare victory immediately.`
+    if (availableActions.includes('pon')) return `*(Offline)* Consider **Pon** on ${tile} if it completes a triplet that advances your hand.`
     return `*(Offline)* No strong recommendation — **Pass** if unsure.`
   }
 }

@@ -4,6 +4,35 @@
 const HONORS = ['Ton', 'Nan', 'Shaa', 'Pei', 'Haku', 'Hatsu', 'Chun'];
 const SUITS = ['Man', 'Pin', 'Sou'];
 
+const SUIT_LABELS = { Man: 'Characters', Pin: 'Balls', Sou: 'Stripes' };
+const HONOR_LABELS = {
+  Ton: 'East', Nan: 'South', Shaa: 'West', Pei: 'North',
+  Haku: 'White Dragon', Hatsu: 'Green Dragon', Chun: 'Red Dragon',
+};
+
+/**
+ * Converts an internal tile code to a human-readable name.
+ * e.g. "Sou9" → "9 Stripes", "Hatsu" → "Green Dragon", "Flower2" → "Flower 2"
+ */
+export function formatTile(tile) {
+  if (HONOR_LABELS[tile]) return HONOR_LABELS[tile];
+  for (const [suit, label] of Object.entries(SUIT_LABELS)) {
+    if (tile.startsWith(suit)) {
+      const num = tile.slice(suit.length);
+      return `${num} ${label}`;
+    }
+  }
+  // Flowers / Seasons
+  if (tile.startsWith('Flower')) return `Flower ${tile.slice(6)}`;
+  if (tile.startsWith('Season')) return `Season ${tile.slice(6)}`;
+  return tile;
+}
+
+/** Formats an array of tiles as a readable list. */
+export function formatHand(tiles) {
+  return tiles.map(formatTile).join(', ');
+}
+
 /**
  * Scores every unique tile in the hand — lower score = discard sooner.
  *
@@ -97,7 +126,7 @@ export function evaluateDiscard(hand, isOpponentTingPai = false, safeTiles = [])
     if (safeOptions.length > 0) {
       return {
         recommendedDiscard: safeOptions[0],
-        reason: `(The Sacrifice) Discarding safe tile ${safeOptions[0]} — opponent is in Tīng Pái.`,
+        reason: `(The Sacrifice) Discarding safe tile ${formatTile(safeOptions[0])} — opponent is one tile from winning.`,
       };
     }
     return {
@@ -110,16 +139,17 @@ export function evaluateDiscard(hand, isOpponentTingPai = false, safeTiles = [])
   const best = ranked[0];
   const isHonor = HONORS.includes(best.tile);
   const num = parseInt(best.tile.replace(/\D/g, ''), 10);
+  const name = formatTile(best.tile);
 
   let reason;
   if (isHonor && best.count === 1) {
-    reason = `${best.tile} is a lone honor tile — it can't form sequences and has no pair, making it the deadest tile in your hand.`;
+    reason = `${name} is a lone honor tile — it can't form sequences and has no pair, making it the deadest tile in your hand.`;
   } else if (!isNaN(num)) {
     const dist = Math.abs(5 - num);
     const label = dist === 4 ? 'terminal' : dist === 3 ? 'near-terminal' : dist === 2 ? 'edge tile' : 'off-center tile';
-    reason = `${best.tile} is a ${label} with low connectivity and no current pair or sequence.`;
+    reason = `${name} is a ${label} with low connectivity and no current pair or sequence.`;
   } else {
-    reason = `${best.tile} has the lowest meld potential in your hand.`;
+    reason = `${name} has the lowest meld potential in your hand.`;
   }
 
   return { recommendedDiscard: best.tile, reason, ranking: ranked };

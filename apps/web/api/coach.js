@@ -1,42 +1,49 @@
 import Anthropic from '@anthropic-ai/sdk'
-import { evaluateDiscard } from '../../../packages/engine/src/ai/heuristic.js'
+import { evaluateDiscard, formatTile, formatHand } from '../../../packages/engine/src/ai/heuristic.js'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+
+function fmt(tile) { return formatTile(tile) }
+function fmtList(tiles) { return formatHand(tiles) }
+function fmtMelds(melds) {
+  return melds.length ? melds.map(m => m.map(fmt).join('-')).join(' | ') : 'none'
+}
 
 function buildSystemPrompt() {
   return `You are Maia, an expert Taiwanese 16-tile Mahjong coach embedded in the player's game. You are concise, sharp, and strategic.
 
-Tile naming convention:
-- Suits: Man1–Man9 (Characters), Pin1–Pin9 (Dots), Sou1–Sou9 (Bamboo)
-- Honors: Ton/Nan/Shaa/Pei (Winds), Haku/Hatsu/Chun (Dragons)
-- Flowers: Flower1–4, Season1–4 (scored as bonuses, auto-drawn)
+Tile naming used in this game:
+- Suits: "1 Balls" through "9 Balls" (circles/dots), "1 Stripes" through "9 Stripes" (bamboo), "1 Characters" through "9 Characters"
+- Winds: East, South, West, North
+- Dragons: White Dragon, Green Dragon, Red Dragon
+- Flowers: Flower 1–4, Season 1–4 (bonus tiles, auto-drawn)
 
 Mahjong concepts you know:
 - Pon: claim a discard to form a triplet (exposed)
 - Chow: claim the left neighbor's discard to complete a sequence (exposed)
 - Kong: four-of-a-kind meld (draw a replacement tile)
 - Hu (胡): winning hand = 5 melds + 1 pair (or special hands)
-- Tenpai / Tīng Pái: one tile away from winning
+- One tile from winning = ready hand
 
-Always lead with the specific action in bold (e.g. **Discard Man1** or **Pon**). Follow with 1-2 sentences explaining the concrete reason using the actual tile names from the player's hand. Never give generic advice like "if it helps your hand" — always reference specific tiles and the meld or strategy they enable.`
+Always lead with the specific action in bold (e.g. **Discard 9 Stripes** or **Pon**). Follow with 1-2 sentences explaining the concrete reason using the tile names above. Never give generic advice like "if it helps your hand" — always reference specific tiles and the meld or strategy they enable.`
 }
 
 function buildDiscardPrompt(hand, exposed, flowers, discardPile, remainingCount) {
   const heuristic = evaluateDiscard(hand, false)
-  return `My hand: ${hand.join(', ')}
-Exposed melds: ${exposed.length ? exposed.map(m => m.join('-')).join(' | ') : 'none'}
-Flowers/Seasons collected: ${flowers.length ? flowers.join(', ') : 'none'}
-Recent discards: ${discardPile.slice(-8).join(', ') || 'none'}
+  return `My hand: ${fmtList(hand)}
+Exposed melds: ${fmtMelds(exposed)}
+Flowers/Seasons collected: ${flowers.length ? fmtList(flowers) : 'none'}
+Recent discards: ${discardPile.slice(-8).length ? fmtList(discardPile.slice(-8)) : 'none'}
 Tiles remaining in wall: ${remainingCount}
-Heuristic suggestion: ${heuristic.recommendedDiscard} (${heuristic.reason})
+Heuristic suggestion: ${fmt(heuristic.recommendedDiscard)} — ${heuristic.reason}
 
 What should I discard and why?`
 }
 
 function buildInterruptPrompt(hand, exposed, discardedTile, availableActions, sourcePlayer) {
-  return `Player ${sourcePlayer} just discarded: ${discardedTile}
-My hand: ${hand.join(', ')}
-Exposed melds: ${exposed.length ? exposed.map(m => m.join('-')).join(' | ') : 'none'}
+  return `Player ${sourcePlayer} just discarded: ${fmt(discardedTile)}
+My hand: ${fmtList(hand)}
+Exposed melds: ${fmtMelds(exposed)}
 Options available: ${availableActions.join(', ')}
 
 Give me a direct, educational recommendation. Start with the action I should take (e.g. "Pon", "Pass", "Chow") in bold, then explain in 1-2 sentences exactly why — what meld it completes, how it moves me toward winning, or why passing is smarter. Be specific about my tiles, not generic.`
