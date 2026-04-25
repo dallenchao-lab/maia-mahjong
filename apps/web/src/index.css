@@ -10,3 +10,31 @@
 body {
   @apply bg-felt text-white m-0 p-0 font-sans;
 }
+
+/* ── Fireworks ────────────────────────────────────────────────────── */
+@keyframes firework-spark {
+  0%   { transform: rotate(var(--a)) translateX(0)        scale(1.2); opacity: 1; }
+  45%  { opacity: 1; }
+  50%  { transform: rotate(var(--a)) translateX(var(--d)) scale(0);   opacity: 0; }
+  51%  { transform: rotate(var(--a)) translateX(0)        scale(0);   opacity: 0; }
+  100% { transform: rotate(var(--a)) translateX(0)        scale(0);   opacity: 0; }
+}
+
+.firework-burst {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.firework-spark {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color, gold);
+  top: -3.5px;
+  left: -3.5px;
+  transform-origin: center center;
+  animation: firework-spark 2s ease-out infinite;
+  animation-delay: var(--delay, 0s);
+}

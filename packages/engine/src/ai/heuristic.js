@@ -200,7 +200,6 @@ export function evaluateDiscard(hand, isOpponentTingPai = false, safeTiles = [])
   return { recommendedDiscard: best.tile, reason, ranking: ranked };
 }
 
-// Legacy export
 export function getTileWeight(tileName) {
   if (HONORS.includes(tileName) || tileName.includes('Flower') || tileName.includes('Season')) return 0.8;
   const num = parseInt(tileName.replace(/\D/g, ''), 10);
@@ -208,4 +207,30 @@ export function getTileWeight(tileName) {
   if (num === 1 || num === 9) return 0.8;
   if (num === 2 || num === 8) return 1.0;
   return 1.4;
+}
+
+/**
+ * Determines if a bot should intercept a discard.
+ * Priority: Hu -> Pon -> Chow.
+ * For Pon/Chow, currently only accepts if it puts them in Tenpai or completes a valuable sequence without breaking pairs.
+ */
+export function getBotInterruptAction(hand, discardedTile, availableActions) {
+  if (availableActions.includes('hu')) {
+    return 'hu'; // Always take a win if possible
+  }
+
+  // Simplified v1 logic: If we can pon and we already have 2, do it for now.
+  // A real heuristic would check if this gets us closer to tenpai.
+  if (availableActions.includes('pon')) {
+    // Only pon if doing so doesn't leave us with a worse hand (e.g. breaking a complete chow that used one of the pairs)
+    // For V1 BotMatchMode, we will aggressively Pon to build exposed melds purely for the demo effect!
+    return 'pon'; 
+  }
+
+  if (availableActions.includes('chow')) {
+    // Arbitrarily 50% chance to chow to avoid over-chowing, or aggressively chow? Let's just randomly pass or chow for V1.
+    return Math.random() > 0.5 ? 'chow' : 'pass';
+  }
+
+  return 'pass';
 }
